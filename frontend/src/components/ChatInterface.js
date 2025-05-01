@@ -6,15 +6,16 @@ const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     const startTime = Date.now();
     setLoading(true);
     const MIN_SPINNER_TIME = 500; // milliseconds
 
     try {
-      // Bug: No loading indicator
       const response = await fetch("http://localhost:8000/api/bra-fitting", {
         method: "POST",
         headers: {
@@ -23,9 +24,17 @@ const ChatInterface = () => {
         body: JSON.stringify({ text: input })
       });
 
+      if (!response.ok) {
+        let errorMsg = "An error occurred. Please try again.";
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.detail || errorMsg;
+        } catch {}
+        throw new Error(errorMsg);
+      }
+
       const data = await response.json();
-      
-      // Bug: No error handling for failed requests
+
       setMessages([...messages, {
         text: input,
         isUser: true
@@ -35,13 +44,14 @@ const ChatInterface = () => {
         fitTips: data.fit_tips,
         issues: data.identified_issues,
         confidence: data.confidence,
+        sister_sizes: data.sister_sizes,
         isUser: false
       }]);
       
       setInput("");
     } catch (error) {
-      // Bug: Poor error handling
       console.error(error);
+      setError(error.message || "Network error. Please try again.");
     } finally {
       const elapsedTime = Date.now() - startTime;
       if (elapsedTime < MIN_SPINNER_TIME) {
@@ -52,6 +62,12 @@ const ChatInterface = () => {
         setLoading(false);
       }
     }
+  };
+
+  const handleClear = () => {
+    setMessages([]);
+    setInput("");
+    setError(null);
   };
 
   return (
@@ -68,25 +84,57 @@ const ChatInterface = () => {
             {msg.isUser ? (
               msg.text
             ) : (
-              // Bug: Poor information display
-              <div>
-                <div>{msg.text}</div>
-                <div>{msg.reasoning}</div>
-                <div>{msg.fitTips}</div>
+              <div className="recommendation-card">
+                <div><strong>Recommended Size:</strong> {msg.text.replace('Recommended Size: ', '')}</div>
+                {msg.confidence !== undefined && (
+                  <div><strong>Confidence:</strong> {Math.round(msg.confidence * 100)}%</div>
+                )}
+                {msg.reasoning && (
+                  <div><strong>Reasoning:</strong> {msg.reasoning}</div>
+                )}
+                {msg.fitTips && (
+                  <div><strong>Fit Tips:</strong> {msg.fitTips}</div>
+                )}
+                {msg.issues && msg.issues.length > 0 && (
+                  <div><strong>Identified Issues:</strong> {msg.issues.join(', ')}</div>
+                )}
+                {msg.sister_sizes && msg.sister_sizes.length > 0 && (
+                  <div><strong>Sister Sizes:</strong> {msg.sister_sizes.join(', ')}</div>
+                )}
               </div>
             )}
           </div>
         ))}
       </div>
+      {error && (
+        <div className="error-message" style={{ color: 'red', margin: '1em 0' }}>
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="input-form">
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            if (error) setError(null);
+          }}
           placeholder="Enter your measurements and fit issues..."
         />
         <button type="submit">Get Recommendation</button>
+        <button
+          type="button"
+          onClick={handleClear}
+          style={{ marginLeft: "1em", background: "#eee", color: "#333" }}
+        >
+          Clear
+        </button>
       </form>
+      <div className="input-guidance">
+        <small>
+          <strong>Tip:</strong> Enter your underbust and bust measurements (e.g., <em>34 underbust, 38 bust</em>) and describe any fit issues (e.g., <em>band rides up, straps keep falling off</em>).
+        </small>
+      </div>
     </div>
   );
 };

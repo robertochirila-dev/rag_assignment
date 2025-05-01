@@ -84,3 +84,14 @@ button {
   justify-content: center;
   margin: 1em 0;
 }
+
+.recommendation-card {
+  background: #f6f8fa;
+  border-radius: 6px;
+  padding: 1em;
+  margin: 0.5em 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.recommendation-card strong {
+  color: #2a4d69;
+}
