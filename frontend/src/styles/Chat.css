@@ -45,3 +45,42 @@ button {
   border-radius: 5px;
   cursor: pointer;
 }
+
+.recommendation-card {
+  background: #f6f8fa;
+  border-radius: 6px;
+  padding: 1em;
+  margin: 0.5em 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.recommendation-card strong {
+  color: #2a4d69;
+}
+
+.input-guidance {
+  margin-top: 0.5em;
+  color: #555;
+  font-size: 0.95em;
+}
+.input-guidance em {
+  color: #007bff;
+}
+
+.input-form button[type="button"] {
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 0.5em;
+}
+.input-form button[type="button"]:hover {
+  background: #f5c6cb;
+  color: #721c24;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1em 0;
+}

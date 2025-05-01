@@ -1,14 +1,18 @@
 import React, { useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 import "../styles/Chat.css";
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  // Bug: Missing loading state
+  const [loading, setLoading] = useState(false);
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    const startTime = Date.now();
+    setLoading(true);
+    const MIN_SPINNER_TIME = 500; // milliseconds
+
     try {
       // Bug: No loading indicator
       const response = await fetch("http://localhost:8000/api/bra-fitting", {
@@ -38,12 +42,27 @@ const ChatInterface = () => {
     } catch (error) {
       // Bug: Poor error handling
       console.error(error);
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      if (elapsedTime < MIN_SPINNER_TIME) {
+        setTimeout(() => {
+          setLoading(false);
+        }, MIN_SPINNER_TIME - elapsedTime);
+      } else {
+        setLoading(false);
+      }
     }
   };
 
   return (
     <div className="chat-container">
       <div className="messages">
+        {loading && (
+          <div className="loading-indicator">
+            <ClipLoader color="#000000" size={15} />
+            <span style={{ marginLeft: "1em" }}>Loading...</span>
+          </div>
+        )}
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.isUser ? "user" : "bot"}`}>
             {msg.isUser ? (
